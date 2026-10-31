@@ -1,0 +1,1065 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body><title>Git and Streamlit Cheat Sheet</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: sticky chapter list on the left (top strip on phones), one reading column on the right.
+   Palette: blue-grey paper, ink text, teal accent. Four fixed tag colours: read=blue, write=amber, remote=violet, danger=red.
+   Type: Manrope for text and headings, JetBrains Mono for commands. */
+:root{
+  --bg:#f3f6f9; --surface:#ffffff; --surface2:#e9eef4; --fg:#14202e; --muted:#51627a; --line:#d5dde8;
+  --accent:#0f6f68; --accent-soft:#d9efec; --accent-fg:#ffffff;
+  --code-bg:#12202f; --code-fg:#e4ecf5; --code-dim:#8fa3ba; --code-prompt:#6fe0cf;
+  --read:#1b5cc8; --read-bg:#dde9fb;
+  --write:#8a5200; --write-bg:#fcecc6;
+  --remote:#6a3dc0; --remote-bg:#e9e0fa;
+  --danger:#b0261b; --danger-bg:#fbdedb;
+  --font:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Consolas,'Courier New',monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d1520; --surface:#152130; --surface2:#1d2c3f; --fg:#e6edf5; --muted:#9db0c6; --line:#2a3b50;
+  --accent:#5fd6c8; --accent-soft:#14403e; --accent-fg:#06211f;
+  --code-bg:#0a121b; --code-fg:#e4ecf5; --code-dim:#7f94ab; --code-prompt:#6fe0cf;
+  --read:#8db8ff; --read-bg:#183257; --write:#f3c36b; --write-bg:#47340d;
+  --remote:#c3a6ff; --remote-bg:#32225a; --danger:#ff9d92; --danger-bg:#531c17; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1520; --surface:#152130; --surface2:#1d2c3f; --fg:#e6edf5; --muted:#9db0c6; --line:#2a3b50;
+  --accent:#5fd6c8; --accent-soft:#14403e; --accent-fg:#06211f;
+  --code-bg:#0a121b; --code-fg:#e4ecf5; --code-dim:#7f94ab; --code-prompt:#6fe0cf;
+  --read:#8db8ff; --read-bg:#183257; --write:#f3c36b; --write-bg:#47340d;
+  --remote:#c3a6ff; --remote-bg:#32225a; --danger:#ff9d92; --danger-bg:#531c17; color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:16px;line-height:1.65;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:4px}
+h1,h2,h3,h4{font-weight:800;line-height:1.2;text-wrap:balance;margin:0}
+h1{font-size:clamp(1.9rem,5vw,2.9rem);letter-spacing:-.02em}
+h2{font-size:clamp(1.5rem,3.4vw,2rem);letter-spacing:-.01em;margin-bottom:6px}
+h3{font-size:1.15rem;margin:28px 0 8px}
+h4{font-size:1rem;margin:18px 0 6px}
+p{margin:0 0 12px;max-width:70ch}
+ul,ol{margin:0 0 14px;padding-left:22px;max-width:74ch}
+li{margin-bottom:5px}
+code,kbd{font-family:var(--mono);font-size:.86em}
+:not(pre)>code{background:var(--surface2);padding:1px 6px;border-radius:5px;overflow-wrap:anywhere}
+kbd{background:var(--surface);border:1px solid var(--line);border-bottom-width:2px;padding:0 6px;border-radius:5px}
+
+.page{max-width:1180px;margin:0 auto}
+.hero{padding-block:36px 24px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.eyebrow{font-family:var(--mono);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.hero p.lead{font-size:1.1rem;color:var(--muted);margin-top:12px}
+.path{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;margin:20px 0 0;max-width:none;counter-reset:s}
+.path li{counter-increment:s;margin:0}
+.path a{display:flex;gap:8px;align-items:center;text-decoration:none;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 14px 6px 8px;font-weight:600;font-size:.9rem}
+.path a::before{content:counter(s);display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--accent-fg);font-size:.78rem;font-weight:800}
+.path a:hover{border-color:var(--accent)}
+
+.cols{display:grid;grid-template-columns:minmax(0,1fr);gap:0 40px}
+@media (min-width:960px){.cols{grid-template-columns:210px minmax(0,1fr)}}
+nav.toc{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);display:flex;gap:4px;overflow-x:auto;padding-block:8px;border-bottom:1px solid var(--line);margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding-inline:max(16px,env(safe-area-inset-left,0px))}
+nav.toc a{white-space:nowrap;text-decoration:none;color:var(--muted);font-weight:600;font-size:.88rem;padding:6px 12px;border-radius:8px}
+nav.toc a.on{background:var(--accent-soft);color:var(--accent)}
+nav.toc a:hover{color:var(--fg)}
+@media (min-width:960px){
+  nav.toc{flex-direction:column;overflow:visible;top:16px;align-self:start;margin:28px 0 0;padding:0;border:0;background:transparent;max-height:calc(100vh - 32px);overflow-y:auto}
+  nav.toc a{white-space:normal}
+}
+main{min-width:0}
+section{padding-top:44px}
+section>p.sub{color:var(--muted);font-size:1.02rem;margin-bottom:18px}
+
+.tag{display:inline-block;font-family:var(--mono);font-size:.7rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:5px;white-space:nowrap;vertical-align:middle}
+.tag.read{color:var(--read);background:var(--read-bg)}
+.tag.write{color:var(--write);background:var(--write-bg)}
+.tag.remote{color:var(--remote);background:var(--remote-bg)}
+.tag.danger{color:var(--danger);background:var(--danger-bg)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:16px;min-width:0}
+.card>:last-child{margin-bottom:0}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));margin-bottom:16px}
+.grid .card{margin:0}
+.note{border:1px dashed var(--line);border-radius:10px;padding:12px 16px;margin:0 0 16px;background:var(--surface);max-width:76ch}
+.note b.l{font-family:var(--mono);font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:2px}
+.note.care{border-color:var(--danger);} .note.care b.l{color:var(--danger)}
+.note.tip b.l{color:var(--accent)}
+.note.info b.l{color:var(--read)}
+.note>:last-child{margin-bottom:0}
+
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:16px}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th{text-align:left;font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:10px 14px;background:var(--surface2);white-space:nowrap}
+td{padding:10px 14px;border-top:1px solid var(--line);vertical-align:top}
+td code{white-space:pre-wrap}
+table.fit{min-width:620px}
+td.cmd{font-family:var(--mono);font-size:.84rem;font-weight:500;min-width:190px}
+
+.codewrap{position:relative;margin:0 0 16px;max-width:100%}
+pre{margin:0;background:var(--code-bg);color:var(--code-fg);border-radius:10px;padding:14px 16px;overflow-x:auto;font-family:var(--mono);font-size:.84rem;line-height:1.6}
+pre.code{padding-right:76px}
+pre .p{color:var(--code-prompt)}
+pre .c{color:var(--code-dim)}
+pre .w{color:#f3c36b}
+button.copy,button.mini{font:inherit;font-family:var(--mono);cursor:pointer}
+button.copy{position:absolute;top:8px;right:8px;font-size:.74rem;background:#ffffff1f;color:var(--code-fg);border:1px solid #ffffff33;border-radius:6px;padding:3px 10px}
+button.copy:hover{background:#ffffff38}
+.label{font-family:var(--mono);font-size:.76rem;color:var(--muted);margin-bottom:4px}
+
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.tabs button{font:inherit;font-weight:700;font-size:.95rem;cursor:pointer;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:9px 18px}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.panel[hidden]{display:none!important}
+.steps{list-style:none;padding:0;margin:0 0 16px;counter-reset:st;max-width:none}
+.steps>li{counter-increment:st;position:relative;padding:0 0 18px 46px;margin:0;min-width:0}
+.steps>li::before{content:counter(st);position:absolute;left:0;top:0;width:30px;height:30px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:800;font-size:.9rem}
+.steps>li::after{content:"";position:absolute;left:14px;top:34px;bottom:4px;width:2px;background:var(--line)}
+.steps>li:last-child::after{display:none}
+.steps b.t{display:block;font-weight:800;margin-bottom:2px}
+.steps .codewrap{margin:8px 0 6px}
+
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.filters input[type=search]{flex:1 1 220px;min-width:0;font:inherit;padding:9px 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
+.chip{font:inherit;font-size:.85rem;font-weight:700;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:6px 14px}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+#count{font-size:.85rem;color:var(--muted);margin:0 0 8px}
+.gname{font-family:var(--mono);font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:block;margin-top:4px}
+
+.flow{display:flex;flex-wrap:wrap;gap:8px 4px;align-items:stretch;margin:0 0 16px}
+.flow .box{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-width:0;flex:1 1 130px}
+.flow .box b{display:block;font-size:.95rem}
+.flow .box span{font-size:.8rem;color:var(--muted);display:block;line-height:1.4}
+.flow .box code{font-size:.78rem}
+.flow .arr{align-self:center;color:var(--muted);font-weight:800}
+
+.check{list-style:none;padding:0}
+.check li{padding-left:28px;position:relative}
+.check li::before{content:"";position:absolute;left:2px;top:.42em;width:14px;height:14px;border:2px solid var(--accent);border-radius:4px}
+footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
+</style>
+
+<div class="page">
+<header class="hero">
+  <div class="eyebrow">Data Analysis Module · Class notes</div>
+  <h1>Git, GitHub and Streamlit deployment</h1>
+  <p class="lead">From your first repository to a live dashboard link. Every command is explained, tagged <span class="tag read">read only</span> or <span class="tag write">writes</span>, and you can follow it with CMD, VS Code or GitHub Desktop. Pick the way that feels easiest.</p>
+  <ol class="path">
+    <li><a href="#web">GitHub website</a></li>
+    <li><a href="#setup">Install Git</a></li>
+    <li><a href="#local">Clone, edit, push</a></li>
+    <li><a href="#commands">Commands</a></li>
+    <li><a href="#advanced">Branches</a></li>
+    <li><a href="#streamlit">Deploy</a></li>
+  </ol>
+</header>
+
+<div class="cols">
+<nav class="toc" id="toc" aria-label="Chapters">
+  <a href="#start">Start here</a>
+  <a href="#web">1. GitHub website</a>
+  <a href="#setup">2. Install and set up</a>
+  <a href="#local">3. Work on your laptop</a>
+  <a href="#commands">4. Command guide</a>
+  <a href="#output">5. What you will see</a>
+  <a href="#advanced">6. Advanced</a>
+  <a href="#auth">7. Sign in</a>
+  <a href="#errors">8. Fix errors</a>
+  <a href="#streamlit">9. Streamlit deploy</a>
+  <a href="#lab">10. Practice</a>
+</nav>
+
+<main>
+
+<!-- START -->
+<section id="start">
+  <h2>Start here</h2>
+  <p class="sub">Five words you will hear all day.</p>
+  <div class="grid">
+    <div class="card"><h4>Git</h4><p>A program on your laptop. It remembers every version of your project folder, like "save" with a full history.</p></div>
+    <div class="card"><h4>GitHub</h4><p>A website that stores your Git projects online. It is your backup, your portfolio and the place Streamlit reads your code from.</p></div>
+    <div class="card"><h4>Repository (repo)</h4><p>A project folder that Git is watching. It has your files plus a hidden <code>.git</code> folder that holds the history. Never delete <code>.git</code>.</p></div>
+    <div class="card"><h4>Commit</h4><p>One saved snapshot with a short message, like "Add sales chart". You choose when to take it.</p></div>
+    <div class="card"><h4>Push and pull</h4><p><b>Push</b> sends your commits up to GitHub. <b>Pull</b> brings new commits down to your laptop.</p></div>
+  </div>
+
+  <h3>The picture to keep in your head</h3>
+  <div class="flow">
+    <div class="box"><b>Working folder</b><span>The files you edit</span></div><div class="arr">→</div>
+    <div class="box"><b>Staging area</b><span>Files you picked for the next snapshot<br><code>git add</code></span></div><div class="arr">→</div>
+    <div class="box"><b>Local history</b><span>Snapshots on your laptop<br><code>git commit</code></span></div><div class="arr">→</div>
+    <div class="box"><b>GitHub (remote)</b><span>Copy online<br><code>git push</code></span></div>
+  </div>
+  <p>Daily habit: <b>edit → add → commit → push</b>. Nothing reaches GitHub until you push.</p>
+
+  <h3>Colour tags used in this sheet</h3>
+  <div class="scroll"><table class="fit">
+    <tr><th>Tag</th><th>Meaning</th><th>Safe to try?</th></tr>
+    <tr><td><span class="tag read">read only</span></td><td>Only shows you information. Changes no file and no history.</td><td>Yes, run it as often as you like.</td></tr>
+    <tr><td><span class="tag write">writes</span></td><td>Changes something on your laptop: files, staging area or history.</td><td>Yes, but know what it changes. Most can be undone.</td></tr>
+    <tr><td><span class="tag remote">remote</span></td><td>Talks to GitHub. Sends or receives commits.</td><td>Check <code>git status</code> first.</td></tr>
+    <tr><td><span class="tag danger">danger</span></td><td>Can throw away your work for good.</td><td>Only when you are sure. Ask before using it.</td></tr>
+  </table></div>
+
+  <div class="note care"><b class="l">Three rules to take care of</b>
+    <ul>
+      <li>Run <code>git status</code> before every <code>add</code>, <code>commit</code> and <code>push</code>. It is read only and tells you the truth.</li>
+      <li>Never commit passwords, API keys, tokens or your <code>venv</code> folder. Anything pushed to a public repo is public, even if you delete it later.</li>
+      <li>Commit small and often, with a message that says what changed.</li>
+    </ul>
+  </div>
+  <div class="note info"><b class="l">About screens</b><p>GitHub, VS Code, GitHub Desktop and Streamlit change their screens from time to time. If a button has a slightly different name or place on your screen, look for the same idea nearby. The commands do not change.</p></div>
+</section>
+
+<!-- WEB -->
+<section id="web">
+  <h2>1. GitHub on the website</h2>
+  <p class="sub">No installation needed. Start here to understand what a repo looks like.</p>
+
+  <h3>Create your account</h3>
+  <ol>
+    <li>Open <b>github.com</b> and click <b>Sign up</b>.</li>
+    <li>Enter email, password and a <b>username</b>. The username is public and appears in every link (<code>github.com/username</code>), so pick something professional.</li>
+    <li>Verify your email with the code GitHub sends you.</li>
+  </ol>
+
+  <h3>Create a repository on the website</h3>
+  <ol class="steps">
+    <li><b class="t">Open the new repository form</b>Click the <b>+</b> at the top right, then <b>New repository</b>. Or go to <code>github.com/new</code>.</li>
+    <li><b class="t">Fill in the form</b>See the table below for each field.</li>
+    <li><b class="t">Click Create repository</b>You land on the repo page. Copy the repo link from the green <b>Code</b> button. You need it for cloning.</li>
+  </ol>
+  <div class="scroll"><table class="fit">
+    <tr><th>Field</th><th>What to put</th><th>Take care</th></tr>
+    <tr><td>Owner</td><td>Your username</td><td>Leave as it is.</td></tr>
+    <tr><td>Repository name</td><td>Short, no spaces: <code>sales-dashboard</code></td><td>Use small letters and dashes. The name is part of your link.</td></tr>
+    <tr><td>Description</td><td>One line: "Streamlit dashboard for store sales"</td><td>Optional. Shows under the name.</td></tr>
+    <tr><td>Public / Private</td><td>Public for class projects</td><td>Public means anyone can see the code. Private hides it. You can change it later in Settings.</td></tr>
+    <tr><td>Add a README file</td><td>Tick it</td><td>Creates <code>README.md</code> so the repo is not empty. If you plan to push an existing local project, you can leave it unticked (see "unrelated histories" in Fix errors).</td></tr>
+    <tr><td>Add .gitignore</td><td>Choose the <b>Python</b> template</td><td>Tells Git which files to skip, like <code>venv/</code> and <code>__pycache__/</code>.</td></tr>
+    <tr><td>Choose a license</td><td>MIT if you want others to reuse your code</td><td>Optional for class work.</td></tr>
+  </table></div>
+
+  <h3>Tour of a repo page</h3>
+  <div class="scroll"><table class="fit">
+    <tr><th>Tab / button</th><th>What it is for</th></tr>
+    <tr><td><b>Code</b></td><td>Your files and folders. The green <b>Code</b> button gives the clone link. The branch drop-down (usually <code>main</code>) switches branches. The clock icon with a number shows the commit history.</td></tr>
+    <tr><td><b>Issues</b></td><td>To-do list and bug reports for the project.</td></tr>
+    <tr><td><b>Pull requests</b></td><td>Proposals to merge changes from one branch into another (see Advanced).</td></tr>
+    <tr><td><b>Actions</b></td><td>Automatic jobs, like running tests. Not needed in this course.</td></tr>
+    <tr><td><b>Projects, Wiki, Security, Insights</b></td><td>Boards, extra documentation, security alerts and graphs. Nice to know, not needed now.</td></tr>
+    <tr><td><b>Settings</b></td><td>Controls for the repo. Only the owner sees this tab. Details below.</td></tr>
+  </table></div>
+
+  <h3>The Settings tab</h3>
+  <p>Open the repo, click <b>Settings</b> (far right of the tab row).</p>
+  <div class="scroll"><table class="fit">
+    <tr><th>Where</th><th>What you can do</th><th>Take care</th></tr>
+    <tr><td>General → Repository name</td><td>Rename the repo.</td><td>Old links stop working. If Streamlit is already deployed from this repo, you must redeploy.</td></tr>
+    <tr><td>General → Default branch</td><td>Choose which branch opens first, normally <code>main</code>.</td><td>Leave it.</td></tr>
+    <tr><td>General → Features</td><td>Turn Issues, Wiki and Projects on or off.</td><td>Harmless.</td></tr>
+    <tr><td>General → Danger Zone</td><td><b>Change visibility</b> (public or private), <b>Transfer</b>, <b>Archive</b>, <b>Delete this repository</b>.</td><td><span class="tag danger">danger</span> Delete cannot be undone. GitHub asks you to type the repo name on purpose.</td></tr>
+    <tr><td>Collaborators</td><td>Invite a friend by username so they can push to your repo.</td><td>Only add people you trust. They can change your code.</td></tr>
+    <tr><td>Branches</td><td>Rules, such as "nobody pushes straight to main".</td><td>Not needed for solo work.</td></tr>
+    <tr><td>Pages</td><td>Publish a website from the repo (next part).</td><td>Free for public repos.</td></tr>
+  </table></div>
+
+  <h3>"Publishing" a repo: two different meanings</h3>
+  <div class="grid">
+    <div class="card"><h4>A. Make the code public</h4>
+      <p>Settings → General → scroll to <b>Danger Zone</b> → <b>Change visibility</b> → <b>Make public</b>. Confirm the prompts. Anyone with the link can read your code.</p>
+      <p>Before you do this, check that no password or key is inside your files.</p></div>
+    <div class="card"><h4>B. Publish a website (GitHub Pages)</h4>
+      <ol>
+        <li>Repo has an <code>index.html</code> in the main folder.</li>
+        <li>Settings → <b>Pages</b>.</li>
+        <li>Build and deployment → Source: <b>Deploy from a branch</b>.</li>
+        <li>Branch: <code>main</code>, folder: <code>/ (root)</code> → <b>Save</b>.</li>
+        <li>Wait one or two minutes. The link appears at the top: <code>https://username.github.io/repo-name/</code></li>
+      </ol></div>
+  </div>
+  <div class="note care"><b class="l">Take care</b><p>GitHub Pages can only host <b>static</b> files (HTML, CSS, JavaScript, images). It cannot run Python, so a Streamlit app does not run there. Streamlit apps go to Streamlit Community Cloud (chapter 9).</p></div>
+
+  <h3>Create a README on the website</h3>
+  <p><code>README.md</code> is the front page of your repo. GitHub shows it under the file list. The <code>.md</code> means Markdown, a simple way to format text.</p>
+  <ol class="steps">
+    <li><b class="t">Start the file</b>On a new empty repo click <b>Add a README</b>. Otherwise: <b>Add file → Create new file</b> and type <code>README.md</code> as the name.</li>
+    <li><b class="t">Write</b>Use the <b>Preview</b> tab to see how it will look.</li>
+    <li><b class="t">Commit</b>Click <b>Commit changes…</b>. Type a message such as "Add README". Keep "Commit directly to the main branch" and click <b>Commit changes</b>.</li>
+  </ol>
+  <div class="grid">
+    <div class="codewrap"><pre class="code"># Sales Dashboard
+
+A Streamlit app that shows store sales for 2019.
+
+## What it shows
+- Sales per month
+- Best cities
+- Busiest hours
+
+## Run it on your laptop
+```
+pip install -r requirements.txt
+streamlit run app.py
+```
+
+## Live app
+https://your-app-name.streamlit.app
+
+Made by **Your Name**</pre></div>
+    <div class="card"><h4>Markdown quick list</h4>
+      <div class="scroll" style="margin:0"><table>
+        <tr><td><code># Title</code></td><td>Big heading (<code>##</code> smaller)</td></tr>
+        <tr><td><code>**bold**</code></td><td><b>bold</b></td></tr>
+        <tr><td><code>*italic*</code></td><td><i>italic</i></td></tr>
+        <tr><td><code>- item</code></td><td>Bullet list</td></tr>
+        <tr><td><code>1. item</code></td><td>Numbered list</td></tr>
+        <tr><td><code>`code`</code></td><td>Small code</td></tr>
+        <tr><td><code>[text](url)</code></td><td>Link</td></tr>
+        <tr><td><code>![alt](image.png)</code></td><td>Picture</td></tr>
+        <tr><td>three backticks</td><td>Code block (open and close)</td></tr>
+      </table></div></div>
+  </div>
+
+  <h3>Add, edit and delete files in the browser</h3>
+  <div class="scroll"><table class="fit">
+    <tr><th>Task</th><th>How</th><th>Take care</th></tr>
+    <tr><td>Upload files</td><td><b>Add file → Upload files</b>, drag files in, write a message, <b>Commit changes</b>.</td><td>The browser accepts files up to 25 MB each. Larger files need Git on your laptop (limit 100 MB).</td></tr>
+    <tr><td>Edit a file</td><td>Open the file → pencil icon → change → <b>Commit changes</b>.</td><td>Every edit is a commit. If you edit online, <b>pull</b> before you work on your laptop.</td></tr>
+    <tr><td>Delete a file</td><td>Open the file → <b>⋯</b> menu → <b>Delete file</b> → commit.</td><td>It stays in history, so you can bring it back.</td></tr>
+    <tr><td>See old versions</td><td>Open a file → <b>History</b>.</td><td>Read only.</td></tr>
+  </table></div>
+  <div class="note tip"><b class="l">Tip</b><p>Press the <kbd>.</kbd> key on any repo page to open a small VS Code in the browser (github.dev). Handy for quick edits.</p></div>
+</section>
+
+<!-- SETUP -->
+<section id="setup">
+  <h2>2. Install Git and set it up (Windows)</h2>
+  <p class="sub">Do this once per laptop.</p>
+  <ol class="steps">
+    <li><b class="t">Download Git for Windows</b>Go to <b>git-scm.com</b> and download the Windows installer.</li>
+    <li><b class="t">Run the installer</b>Click Next through the screens. The default choices are fine. Keep <b>Git Credential Manager</b> ticked, it handles your GitHub sign-in. If it asks for the default editor, choose <b>Visual Studio Code</b>.</li>
+    <li><b class="t">Open a new terminal and check</b>Search for <b>Command Prompt</b> (or PowerShell, or Git Bash). Close any old terminal first, because an old one does not know about Git yet.
+      <div class="codewrap"><pre class="code">git --version</pre></div>
+      You should see something like <code>git version 2.4x.x.windows.1</code>.</li>
+    <li><b class="t">Tell Git who you are (one time)</b>This name goes into every commit you make.
+      <div class="codewrap"><pre class="code">git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+git config --global init.defaultBranch main</pre></div>
+      <div class="note tip"><b class="l">Email privacy</b><p>Commit emails become public on public repos. In GitHub go to Settings → Emails, tick <b>Keep my email addresses private</b>, and use the address that looks like <code>12345+username@users.noreply.github.com</code> in the command above.</p></div>
+    </li>
+    <li><b class="t">Check your settings</b>
+      <div class="codewrap"><pre class="code">git config --list</pre></div>
+    </li>
+  </ol>
+
+  <h3>How every Git command is built</h3>
+  <div class="codewrap"><pre>git  commit  -m  "Add chart"
+ │     │      │       └─ the value for the option
+ │     │      └─ option (starts with - or --)
+ │     └─ the action
+ └─ the program</pre></div>
+  <p>Windows tip: put quotes around names that contain spaces, for example <code>git add "Sales Data.csv"</code>. Better still, avoid spaces in file names.</p>
+
+  <h3>Windows folder commands you need</h3>
+  <p>These are not Git. They move you around the laptop. They work in Command Prompt. (PowerShell and Git Bash accept most of them too.)</p>
+  <div class="scroll"><table class="fit">
+    <tr><th>Command</th><th>What it does</th><th>Type</th></tr>
+    <tr><td class="cmd">cd</td><td>Shows the folder you are in. Also <code>pwd</code> in Git Bash and PowerShell.</td><td><span class="tag read">read only</span></td></tr>
+    <tr><td class="cmd">dir</td><td>Lists files and folders here. Git Bash uses <code>ls</code>.</td><td><span class="tag read">read only</span></td></tr>
+    <tr><td class="cmd">cd Documents</td><td>Go into a folder.</td><td><span class="tag read">read only</span></td></tr>
+    <tr><td class="cmd">cd ..</td><td>Go one folder up.</td><td><span class="tag read">read only</span></td></tr>
+    <tr><td class="cmd">cd /d D:\projects</td><td>Go to another drive and folder in one step.</td><td><span class="tag read">read only</span></td></tr>
+    <tr><td class="cmd">mkdir my-app</td><td>Creates a new folder.</td><td><span class="tag write">writes</span></td></tr>
+    <tr><td class="cmd">cls</td><td>Clears the screen.</td><td><span class="tag read">read only</span></td></tr>
+    <tr><td class="cmd">type README.md</td><td>Prints a file on the screen.</td><td><span class="tag read">read only</span></td></tr>
+    <tr><td class="cmd">code .</td><td>Opens this folder in VS Code. The dot means "this folder".</td><td><span class="tag read">read only</span></td></tr>
+    <tr><td class="cmd">del file.txt</td><td>Deletes a file. It does not go to the Recycle Bin.</td><td><span class="tag danger">danger</span></td></tr>
+    <tr><td class="cmd">rmdir /s /q folder</td><td>Deletes a folder and everything inside.</td><td><span class="tag danger">danger</span></td></tr>
+  </table></div>
+  <div class="note care"><b class="l">Take care</b><p>Always check which folder you are in before running Git commands. Do not run <code>git init</code> in <code>C:\Users\you</code> or on the Desktop root, or Git will start watching everything inside. Make a project folder first.</p></div>
+</section>
+
+<!-- LOCAL -->
+<section id="local">
+  <h2>3. Work on your laptop: three ways</h2>
+  <p class="sub">All three do the same job and talk to the same GitHub repo. Choose the one that looks easiest. You can mix them.</p>
+
+  <div class="tabs" role="tablist" aria-label="Choose a way to work">
+    <button role="tab" id="t-cmd" aria-controls="p-cmd" aria-selected="true">CMD commands</button>
+    <button role="tab" id="t-vsc" aria-controls="p-vsc" aria-selected="false">VS Code</button>
+    <button role="tab" id="t-gd" aria-controls="p-gd" aria-selected="false">GitHub Desktop</button>
+  </div>
+
+  <!-- CMD -->
+  <div class="panel" id="p-cmd" role="tabpanel" aria-labelledby="t-cmd">
+    <h3 style="margin-top:0">A. With CMD commands</h3>
+    <h4>Path 1: the repo already exists on GitHub (clone)</h4>
+    <ol class="steps">
+      <li><b class="t">Go to the folder where projects should live</b>
+        <div class="codewrap"><pre class="code">cd Documents
+mkdir projects
+cd projects</pre></div>
+        <span class="tag write">writes</span> for <code>mkdir</code>, the rest is read only.</li>
+      <li><b class="t">Clone the repo</b>Paste the link from the green <b>Code</b> button (HTTPS tab).
+        <div class="codewrap"><pre class="code">git clone https://github.com/username/sales-dashboard.git</pre></div>
+        <span class="tag write">writes</span> Creates a new folder <code>sales-dashboard</code> and downloads all files and history. Run it outside any other repo.</li>
+      <li><b class="t">Go inside and open VS Code</b>
+        <div class="codewrap"><pre class="code">cd sales-dashboard
+code .</pre></div></li>
+      <li><b class="t">Edit your files, then look at what changed</b>
+        <div class="codewrap"><pre class="code">git status
+git diff</pre></div>
+        <span class="tag read">read only</span> <code>status</code> lists changed files. <code>diff</code> shows the exact lines.</li>
+      <li><b class="t">Stage the files you want in the snapshot</b>
+        <div class="codewrap"><pre class="code">git add app.py
+git add .</pre></div>
+        <span class="tag write">writes</span> The first adds one file. The dot adds everything that changed. Check <code>git status</code> first so you do not add junk.</li>
+      <li><b class="t">Commit</b>
+        <div class="codewrap"><pre class="code">git commit -m "Add monthly sales chart"</pre></div>
+        <span class="tag write">writes</span> Saves the snapshot on your laptop only. Always use <code>-m</code> with a message, otherwise Git opens an editor that confuses beginners.</li>
+      <li><b class="t">Push to GitHub</b>
+        <div class="codewrap"><pre class="code">git push</pre></div>
+        <span class="tag remote">remote</span> Sends your new commits to GitHub. Refresh the repo page to see them.</li>
+      <li><b class="t">Next day: pull before you start</b>
+        <div class="codewrap"><pre class="code">git pull</pre></div>
+        <span class="tag remote">remote</span> Brings new commits from GitHub, for example edits you made on the website.</li>
+    </ol>
+
+    <h4>Path 2: the project exists on your laptop first (init + connect)</h4>
+    <ol class="steps">
+      <li><b class="t">Create an empty repo on GitHub</b>On the website, create the repo <b>without</b> README and without .gitignore, so it starts empty. Copy its link.</li>
+      <li><b class="t">Turn your folder into a repo</b>
+        <div class="codewrap"><pre class="code">cd path\to\sales-dashboard
+git init
+git branch -M main</pre></div>
+        <span class="tag write">writes</span> <code>init</code> creates the hidden <code>.git</code> folder. <code>branch -M main</code> makes sure the branch is named <code>main</code>.</li>
+      <li><b class="t">Create <code>.gitignore</code> now</b>Before the first add. See the .gitignore table in Advanced.</li>
+      <li><b class="t">First snapshot</b>
+        <div class="codewrap"><pre class="code">git status
+git add .
+git commit -m "First commit"</pre></div></li>
+      <li><b class="t">Connect to GitHub and push</b>
+        <div class="codewrap"><pre class="code">git remote add origin https://github.com/username/sales-dashboard.git
+git push -u origin main</pre></div>
+        <code>origin</code> is just the nickname for the GitHub link. <code>-u</code> remembers it, so later you can type only <code>git push</code> and <code>git pull</code>.</li>
+    </ol>
+  </div>
+
+  <!-- VSCODE -->
+  <div class="panel" id="p-vsc" role="tabpanel" aria-labelledby="t-vsc" hidden>
+    <h3 style="margin-top:0">B. With VS Code (Git is built in)</h3>
+    <div class="note info"><b class="l">Needs</b><p>Git installed (chapter 2). VS Code uses it behind the buttons.</p></div>
+    <h4>Clone a repo</h4>
+    <ol class="steps">
+      <li><b class="t">Open the command box</b>Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>, type <b>Git: Clone</b>, press Enter. (Or click <b>Clone Repository</b> on the Welcome page or in the Source Control panel.)</li>
+      <li><b class="t">Paste the link</b>Paste the HTTPS link from GitHub. If asked, choose <b>Clone from URL</b>.</li>
+      <li><b class="t">Pick a folder</b>Choose the parent folder, for example <code>Documents\projects</code>. VS Code creates the repo folder inside it.</li>
+      <li><b class="t">Open it</b>Click <b>Open</b> when VS Code asks. If a sign-in window opens in your browser, approve it.</li>
+    </ol>
+    <h4>Save your work to GitHub</h4>
+    <ol class="steps">
+      <li><b class="t">Edit and save the files</b>Press <kbd>Ctrl</kbd>+<kbd>S</kbd>. Files with changes get a letter in the Explorer: <b>M</b> modified, <b>U</b> new (untracked), <b>D</b> deleted.</li>
+      <li><b class="t">Open Source Control</b>Click the branch-shaped icon on the left bar, or press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd>. You see a <b>Changes</b> list. Click a file to see a side-by-side diff (<span class="tag read">read only</span>).</li>
+      <li><b class="t">Stage</b>Hover a file and click <b>+</b> to stage one file, or the <b>+</b> next to "Changes" to stage all. (<code>git add</code>)</li>
+      <li><b class="t">Commit</b>Type a message in the box and click <b>Commit</b>. If nothing is staged, VS Code may ask whether to stage all. (<code>git commit</code>)</li>
+      <li><b class="t">Push</b>Click <b>Sync Changes</b> (it pulls then pushes) or use the <b>⋯</b> menu → <b>Push</b>. For a brand new local repo the button says <b>Publish Branch</b> or <b>Publish to GitHub</b>. (<code>git push</code>)</li>
+    </ol>
+    <h4>Other things in VS Code</h4>
+    <div class="scroll"><table class="fit">
+      <tr><th>Where</th><th>What it does</th><th>Same as</th></tr>
+      <tr><td>Bottom-left branch name</td><td>Click to switch or create a branch.</td><td><code>git switch</code></td></tr>
+      <tr><td>Source Control → ⋯ → Pull</td><td>Download new commits.</td><td><code>git pull</code></td></tr>
+      <tr><td>Source Control → ⋯ → Fetch</td><td>Check GitHub for new commits without changing your files.</td><td><code>git fetch</code></td></tr>
+      <tr><td>Hover file → curved arrow</td><td><span class="tag danger">danger</span> Discard Changes. Your edits are lost.</td><td><code>git restore file</code></td></tr>
+      <tr><td>Staged file → <b>−</b></td><td>Unstage. File keeps your edits.</td><td><code>git restore --staged</code></td></tr>
+      <tr><td>Terminal → New Terminal (<kbd>Ctrl</kbd>+<kbd>`</kbd>)</td><td>A terminal inside VS Code, already in your project folder. You can type any command from this sheet.</td><td>CMD</td></tr>
+    </table></div>
+  </div>
+
+  <!-- GITHUB DESKTOP -->
+  <div class="panel" id="p-gd" role="tabpanel" aria-labelledby="t-gd" hidden>
+    <h3 style="margin-top:0">C. With GitHub Desktop (buttons only)</h3>
+    <ol class="steps">
+      <li><b class="t">Install and sign in</b>Download from <b>desktop.github.com</b>. Open it, choose <b>Sign in to GitHub.com</b>, and approve in the browser. On the next screen confirm your name and email.</li>
+      <li><b class="t">Clone a repo</b><b>File → Clone repository</b>. The <b>GitHub.com</b> tab lists your repos. Click one, check the <b>Local path</b>, and press <b>Clone</b>.</li>
+      <li><b class="t">Or start a new repo</b><b>File → New repository</b>. Give a name and a folder, tick "Initialize with a README" and choose the Python .gitignore. Then click <b>Publish repository</b> to send it to GitHub. (Untick "Keep this code private" for a public repo.)</li>
+      <li><b class="t">Open your files</b><b>Repository → Open in Visual Studio Code</b> (or the button in the middle of the window). <b>Repository → Show in Explorer</b> opens the folder in Windows.</li>
+      <li><b class="t">Review changes</b>Come back to GitHub Desktop. The <b>Changes</b> tab on the left lists changed files with a tick box each. The right side shows lines removed (red) and added (green). <span class="tag read">read only</span></li>
+      <li><b class="t">Choose files and commit</b>Tick the files you want. Type a short <b>Summary</b> bottom-left (the Description is optional). Click <b>Commit to main</b>.</li>
+      <li><b class="t">Push</b>Click <b>Push origin</b> at the top. If the button says <b>Fetch origin</b>, nothing is waiting to be pushed. If it says <b>Pull origin</b>, GitHub has new commits for you, click it.</li>
+    </ol>
+    <div class="scroll"><table class="fit">
+      <tr><th>Where</th><th>What it does</th><th>Same as</th></tr>
+      <tr><td><b>History</b> tab</td><td>All commits. Click one to see what it changed. <span class="tag read">read only</span></td><td><code>git log</code></td></tr>
+      <tr><td><b>Current branch</b> drop-down</td><td>Switch branch or create a <b>New branch</b>.</td><td><code>git switch -c</code></td></tr>
+      <tr><td><b>Branch → Merge into current branch</b></td><td>Bring another branch into the one you are on.</td><td><code>git merge</code></td></tr>
+      <tr><td><b>Branch → Create pull request</b></td><td>Opens GitHub to start a pull request.</td><td>web</td></tr>
+      <tr><td>Right-click file → <b>Discard changes</b></td><td><span class="tag danger">danger</span> Edits lost. Desktop keeps a copy in Recycle Bin for a short time but do not rely on it.</td><td><code>git restore</code></td></tr>
+      <tr><td>Right-click commit → <b>Undo / Revert</b></td><td>Undo your last commit (keeps files) or make a new commit that cancels an old one.</td><td><code>reset --soft</code>, <code>revert</code></td></tr>
+      <tr><td>Right-click file → <b>Ignore file</b></td><td>Adds it to <code>.gitignore</code>.</td><td>edit <code>.gitignore</code></td></tr>
+    </table></div>
+  </div>
+
+  <h3>Side by side</h3>
+  <div class="scroll"><table class="fit">
+    <tr><th>Job</th><th>CMD</th><th>VS Code</th><th>GitHub Desktop</th></tr>
+    <tr><td>Get a repo</td><td class="cmd">git clone URL</td><td>Ctrl+Shift+P → Git: Clone</td><td>File → Clone repository</td></tr>
+    <tr><td>See changes</td><td class="cmd">git status / git diff</td><td>Source Control panel</td><td>Changes tab</td></tr>
+    <tr><td>Stage</td><td class="cmd">git add .</td><td>+ next to file</td><td>Tick box</td></tr>
+    <tr><td>Commit</td><td class="cmd">git commit -m "msg"</td><td>Message box → Commit</td><td>Summary → Commit to main</td></tr>
+    <tr><td>Send to GitHub</td><td class="cmd">git push</td><td>Sync Changes</td><td>Push origin</td></tr>
+    <tr><td>Get updates</td><td class="cmd">git pull</td><td>Sync Changes / ⋯ → Pull</td><td>Pull origin</td></tr>
+    <tr><td>New branch</td><td class="cmd">git switch -c name</td><td>Branch name (bottom-left)</td><td>Current branch → New branch</td></tr>
+    <tr><td>History</td><td class="cmd">git log --oneline</td><td>Timeline in Explorer, or Git Graph extension</td><td>History tab</td></tr>
+  </table></div>
+  <div class="note tip"><b class="l">Which one should I pick?</b><p>CMD teaches you what really happens, and works on any server. VS Code is best if you already live in the editor. GitHub Desktop is the easiest to start with. Many people use the buttons daily and the terminal when something goes wrong.</p></div>
+</section>
+
+<!-- COMMANDS -->
+<section id="commands">
+  <h2>4. Command guide</h2>
+  <p class="sub">Search or filter. Every row says what it does, whether it changes anything, and what to watch for.</p>
+  <div class="filters">
+    <input type="search" id="q" placeholder="Search a command, for example: undo" aria-label="Search commands">
+    <button class="chip" data-f="all" aria-pressed="true">All</button>
+    <button class="chip" data-f="read" aria-pressed="false">Read only</button>
+    <button class="chip" data-f="write" aria-pressed="false">Writes</button>
+    <button class="chip" data-f="remote" aria-pressed="false">Remote</button>
+    <button class="chip" data-f="danger" aria-pressed="false">Danger</button>
+  </div>
+  <p id="count" aria-live="polite"></p>
+  <div class="scroll"><table class="fit" id="cmdtable">
+    <thead><tr><th>Command</th><th>What it does</th><th>Type</th><th>Take care</th></tr></thead>
+    <tbody></tbody>
+  </table></div>
+  <div class="note info"><b class="l">Remember the first rule</b><p>If you are not sure what a command will do, run <code>git status</code> first. Then ask your teacher. Every <span class="tag danger">danger</span> row exists because someone lost work with it.</p></div>
+</section>
+
+<!-- OUTPUT -->
+<section id="output">
+  <h2>5. What you will see</h2>
+  <p class="sub">Real output from a practice repo. Your commit codes (like <code>a3cb7ac</code>) and folder paths will be different. That is normal.</p>
+
+  <h3>First repo, first commits</h3>
+  <pre><span class="p">C:\projects\my-app&gt; git init</span>
+Initialized empty Git repository in C:/projects/my-app/.git/
+
+<span class="p">C:\projects\my-app&gt; git status</span>
+On branch main
+
+No commits yet
+
+Untracked files:
+  (use "git add &lt;file&gt;..." to include in what will be committed)
+	README.md
+	app.py
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+<span class="p">C:\projects\my-app&gt; git add README.md</span>
+<span class="p">C:\projects\my-app&gt; git status -s</span>
+A  README.md
+?? app.py
+
+<span class="p">C:\projects\my-app&gt; git commit -m "Add README"</span>
+[main (root-commit) 579dcbb] Add README
+ 1 file changed, 1 insertion(+)
+ create mode 100644 README.md
+
+<span class="p">C:\projects\my-app&gt; git log --oneline</span>
+a3cb7ac Add app.py
+579dcbb Add README</pre>
+  <div class="scroll"><table class="fit">
+    <tr><th>Short status code</th><th>Meaning</th></tr>
+    <tr><td><code>??</code></td><td>New file, Git is not tracking it yet.</td></tr>
+    <tr><td><code>A </code> (green A in first column)</td><td>New file, staged and ready to commit.</td></tr>
+    <tr><td><code> M</code> (M in second column)</td><td>Changed, not staged yet.</td></tr>
+    <tr><td><code>M </code> (M in first column)</td><td>Changed and staged.</td></tr>
+    <tr><td><code>UU</code></td><td>Merge conflict, needs your decision.</td></tr>
+  </table></div>
+
+  <h3>Reading a diff</h3>
+  <pre><span class="p">&gt; git diff</span>
+diff --git a/app.py b/app.py
+index 9f1b437..b376c99 100644
+--- a/app.py
++++ b/app.py
+@@ -1 +1 @@
+<span style="color:#ff8f85">-print('hi')</span>
+<span style="color:#7be0a0">+print('hello')</span></pre>
+  <p>A line with <code>-</code> was removed. A line with <code>+</code> was added. Changing a line shows as one removed and one added.</p>
+
+  <h3>Connect to GitHub and push</h3>
+  <pre><span class="p">&gt; git remote add origin https://github.com/username/my-app.git</span>
+<span class="p">&gt; git remote -v</span>
+origin	https://github.com/username/my-app.git (fetch)
+origin	https://github.com/username/my-app.git (push)
+
+<span class="p">&gt; git push -u origin main</span>
+To https://github.com/username/my-app.git
+ * [new branch]      main -> main
+branch 'main' set up to track 'origin/main'.</pre>
+
+  <h3>Branch and merge</h3>
+  <pre><span class="p">&gt; git switch -c feature</span>
+Switched to a new branch 'feature'
+<span class="c">(edit files, add, commit)</span>
+<span class="p">&gt; git switch main</span>
+Switched to branch 'main'
+Your branch is up to date with 'origin/main'.
+
+<span class="p">&gt; git merge feature</span>
+Updating a3cb7ac..80d5790
+Fast-forward
+ app.py | 2 +-
+ new.py | 1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+<span class="p">&gt; git branch -d feature</span>
+Deleted branch feature (was 80d5790).</pre>
+
+  <h3>A rejected push</h3>
+  <p>A friend (or you, on the GitHub website) pushed first. Git refuses to overwrite their work.</p>
+  <pre><span class="p">&gt; git push</span>
+To https://github.com/username/my-app.git
+ ! [rejected]        main -> main (fetch first)
+error: failed to push some refs to 'https://github.com/username/my-app.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.</pre>
+  <p>Fix: run <code>git pull</code>, then <code>git push</code> again.</p>
+
+  <h3>A merge conflict</h3>
+  <p>You and your friend changed the same line of <code>README.md</code>.</p>
+  <pre><span class="p">&gt; git pull</span>
+Auto-merging README.md
+CONFLICT (content): Merge conflict in README.md
+Automatic merge failed; fix conflicts and then commit the result.
+
+<span class="p">&gt; git status -s</span>
+UU README.md
+
+<span class="c"># README.md now contains:</span>
+# My App
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+my line
+=======
+friend line
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; 142ded9</pre>
+  <p>How to fix it is in the Advanced chapter.</p>
+</section>
+
+<!-- ADVANCED -->
+<section id="advanced">
+  <h2>6. Advanced</h2>
+  <p class="sub">When you work with other people, or want to experiment safely.</p>
+
+  <h3>.gitignore: files Git must skip</h3>
+  <p>Create a plain text file named exactly <code>.gitignore</code> in the main folder. One pattern per line. Make it <b>before</b> your first <code>git add .</code>. A file Git already tracks is not hidden by adding it here later (see Fix errors).</p>
+  <div class="grid">
+    <div class="codewrap"><pre class="code"># Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Secrets
+.env
+.streamlit/secrets.toml
+
+# Windows / editor
+Thumbs.db
+.vscode/
+
+# Big data you do not need online
+*.zip</pre></div>
+    <div class="card"><h4>Pattern guide</h4>
+      <div class="scroll" style="margin:0"><table>
+        <tr><td><code>venv/</code></td><td>The whole folder</td></tr>
+        <tr><td><code>*.pyc</code></td><td>Any file ending in .pyc</td></tr>
+        <tr><td><code>.env</code></td><td>That exact file</td></tr>
+        <tr><td><code># text</code></td><td>Comment</td></tr>
+        <tr><td><code>!keep.csv</code></td><td>Exception: do not ignore this</td></tr>
+      </table></div></div>
+  </div>
+
+  <h3>Branches: a safe copy to experiment on</h3>
+  <p>A branch is a separate line of commits. <code>main</code> stays clean while you try something on a branch. If it works, merge it. If not, delete it.</p>
+  <div class="codewrap"><pre class="code">git switch -c add-filters      # make a branch and move to it
+# edit, add, commit as usual
+git push -u origin add-filters # first push of this branch
+git switch main                # go back
+git merge add-filters          # bring the work into main
+git branch -d add-filters      # delete the finished branch</pre></div>
+  <div class="note care"><b class="l">Take care</b><p>Before <code>git switch</code>, commit or stash your edits. Switching changes the files in your folder to match the other branch.</p></div>
+
+  <h3>Pull request (PR): ask to merge on GitHub</h3>
+  <ol class="steps">
+    <li><b class="t">Push your branch</b><code>git push -u origin add-filters</code></li>
+    <li><b class="t">Open the repo on GitHub</b>A yellow banner appears: <b>Compare &amp; pull request</b>. Click it. (Or Pull requests tab → New pull request.)</li>
+    <li><b class="t">Describe it</b>Write a title and a short description of what changed and why. Choose the base branch (<code>main</code>) and your branch.</li>
+    <li><b class="t">Create pull request</b>The page shows the files changed. A teammate can comment or approve.</li>
+    <li><b class="t">Merge</b>Click <b>Merge pull request</b> then <b>Confirm</b>. Then <b>Delete branch</b>.</li>
+    <li><b class="t">Update your laptop</b>
+      <div class="codewrap"><pre class="code">git switch main
+git pull</pre></div></li>
+  </ol>
+
+  <h3>Fork vs clone</h3>
+  <p>A <b>clone</b> is a copy on your laptop. A <b>fork</b> is a copy of someone else's repo inside <b>your GitHub account</b> (button at the top right of their repo). You fork when you do not have permission to push to the original. Then you clone your fork, make a branch, push, and open a PR to the original.</p>
+
+  <h3>Fix a merge conflict step by step</h3>
+  <ol class="steps">
+    <li><b class="t">Do not panic</b>A conflict means Git cannot decide between two edits to the same lines. Nothing is lost. <code>git status</code> lists the files marked <code>both modified</code>.</li>
+    <li><b class="t">Open the file in VS Code</b>You see markers. Between <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> and <code>=======</code> is <b>your</b> version. Between <code>=======</code> and <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code> is <b>theirs</b>. VS Code shows buttons above: <b>Accept Current</b>, <b>Accept Incoming</b>, <b>Accept Both</b>.</li>
+    <li><b class="t">Choose, then remove all marker lines</b>The final file must have no <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>, <code>=======</code> or <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code> left. Save.</li>
+    <li><b class="t">Finish</b>
+      <div class="codewrap"><pre class="code">git add README.md
+git commit -m "Fix merge conflict in README"
+git push</pre></div></li>
+    <li><b class="t">Want to cancel?</b><code>git merge --abort</code> puts everything back as it was before the pull. (If you used <code>git pull</code> with the default setting and it was a merge, this works.)</li>
+  </ol>
+
+  <h3>Stash: put edits in a drawer for a moment</h3>
+  <div class="codewrap"><pre class="code">git stash          # hide my unfinished edits, folder becomes clean
+git switch main    # do something else
+git stash pop      # bring the edits back</pre></div>
+  <p><code>git stash list</code> shows what is in the drawer (read only).</p>
+
+  <h3>Undo cheat table</h3>
+  <p>Find your situation, copy the fix.</p>
+  <div class="scroll"><table class="fit">
+    <tr><th>Situation</th><th>Fix</th><th>Type</th></tr>
+    <tr><td>I edited a file and want the old one back</td><td class="cmd">git restore app.py</td><td><span class="tag danger">danger</span> edits lost</td></tr>
+    <tr><td>I staged a file by mistake</td><td class="cmd">git restore --staged app.py</td><td><span class="tag write">writes</span> keeps edits</td></tr>
+    <tr><td>My last commit message has a typo (not pushed)</td><td class="cmd">git commit --amend -m "New message"</td><td><span class="tag write">writes</span></td></tr>
+    <tr><td>I forgot a file in my last commit (not pushed)</td><td class="cmd">git add file<br>git commit --amend --no-edit</td><td><span class="tag write">writes</span></td></tr>
+    <tr><td>Undo my last commit but keep the work</td><td class="cmd">git reset --soft HEAD~1</td><td><span class="tag write">writes</span></td></tr>
+    <tr><td>Undo a commit that is already pushed</td><td class="cmd">git revert &lt;code&gt;</td><td><span class="tag write">writes</span> safe: adds a new commit that cancels it</td></tr>
+    <tr><td>Throw away everything since the last commit</td><td class="cmd">git reset --hard</td><td><span class="tag danger">danger</span></td></tr>
+    <tr><td>Delete untracked files (see first: <code>git clean -n</code>)</td><td class="cmd">git clean -fd</td><td><span class="tag danger">danger</span></td></tr>
+    <tr><td>I committed a secret</td><td>Change the password or key <b>immediately</b>. Deleting it from the repo is not enough, because history keeps it. Then ask your teacher how to clean history.</td><td><span class="tag danger">danger</span></td></tr>
+  </table></div>
+  <div class="note care"><b class="l">Take care</b><p>Never use <code>git push --force</code> on shared branches. It overwrites other people's commits on GitHub. If you must, use <code>--force-with-lease</code>, which refuses if someone else pushed in the meantime.</p></div>
+
+  <h3>Tags and releases</h3>
+  <div class="codewrap"><pre class="code">git tag v1.0
+git push origin v1.0</pre></div>
+  <p>A tag is a name for one commit, like a bookmark. On GitHub, the <b>Releases</b> area (right side of the Code tab) can turn a tag into a downloadable version.</p>
+
+  <h3>Habits of a good commit</h3>
+  <ul>
+    <li>One idea per commit.</li>
+    <li>Message starts with a verb: "Add city filter", "Fix date parsing", "Update README".</li>
+    <li>Not "update", "final", "aaa", "changes".</li>
+  </ul>
+</section>
+
+<!-- AUTH -->
+<section id="auth">
+  <h2>7. Signing in to GitHub from your laptop</h2>
+  <p class="sub">GitHub does not accept your account password in Git. These are the ways that work.</p>
+  <div class="grid">
+    <div class="card"><h4>A. Browser sign-in (easiest)</h4>
+      <p>With Git for Windows, the first <code>git clone</code> of a private repo or <code>git push</code> opens a window titled <b>Git Credential Manager</b>. Choose <b>Sign in with your browser</b> and approve. Windows remembers it. VS Code and GitHub Desktop do the same through their own sign-in buttons.</p></div>
+    <div class="card"><h4>B. Personal access token</h4>
+      <p>GitHub → your photo → Settings → Developer settings → Personal access tokens → generate one with access to your repo. When Git asks for a <b>password</b>, paste the token. Copy it when it is shown, because GitHub shows it only once.</p>
+      <p><span class="tag danger">danger</span> A token works like a password. Never put it in code or a README.</p></div>
+    <div class="card"><h4>C. SSH key (advanced)</h4>
+      <div class="codewrap"><pre class="code">ssh-keygen -t ed25519 -C "you@example.com"</pre></div>
+      <p>Press Enter to accept the defaults. Copy the contents of the <code>.pub</code> file into GitHub → Settings → SSH and GPG keys. Then clone with the link that starts with <code>git@github.com:</code>.</p></div>
+  </div>
+  <div class="note tip"><b class="l">Use the right link</b><p>On the green <b>Code</b> button, the <b>HTTPS</b> tab gives <code>https://github.com/...</code> and the <b>SSH</b> tab gives <code>git@github.com:...</code>. For beginners, use HTTPS.</p></div>
+</section>
+
+<!-- ERRORS -->
+<section id="errors">
+  <h2>8. Fix common errors</h2>
+  <p class="sub">Read the last lines of the message first. Git usually tells you what to do.</p>
+  <div class="scroll"><table class="fit">
+    <tr><th>You see</th><th>What it means</th><th>Fix</th></tr>
+    <tr><td><code>'git' is not recognized as an internal or external command</code></td><td>Git is not installed, or this terminal was opened before you installed it.</td><td>Install Git, close the terminal, open a new one, run <code>git --version</code>.</td></tr>
+    <tr><td><code>fatal: not a git repository (or any of the parent directories): .git</code></td><td>You are in a folder that is not a repo.</td><td><code>cd</code> into the project folder. Check with <code>git status</code>. Use <code>git init</code> only if it should be a new repo.</td></tr>
+    <tr><td><code>Please tell me who you are</code> / <code>Author identity unknown</code></td><td>Name and email not set.</td><td>Run the two <code>git config --global user.…</code> commands from chapter 2.</td></tr>
+    <tr><td><code>error: src refspec main does not match any</code></td><td>No commit yet, or your branch has another name (like <code>master</code>).</td><td>Make a commit first. Then <code>git branch -M main</code> and push again.</td></tr>
+    <tr><td><code>fatal: remote origin already exists</code></td><td>You already ran <code>remote add</code>.</td><td><code>git remote set-url origin NEW_URL</code>, or check with <code>git remote -v</code>.</td></tr>
+    <tr><td><code>remote: Repository not found</code> / <code>fatal: repository … not found</code></td><td>Typo in the link, or you are signed in as a different account, or the repo is private.</td><td>Copy the link again from the green Code button. Check the repo name and your username.</td></tr>
+    <tr><td><code>Support for password authentication was removed</code> / <code>Authentication failed</code></td><td>GitHub no longer accepts account passwords here.</td><td>Use browser sign-in or a token (chapter 7). If an old password is saved, remove it in Windows Credential Manager → Windows Credentials → entries named <code>git:https://github.com</code>.</td></tr>
+    <tr><td><code>! [rejected] main -&gt; main (fetch first)</code></td><td>GitHub has commits you do not have.</td><td><code>git pull</code> then <code>git push</code>.</td></tr>
+    <tr><td><code>fatal: refusing to merge unrelated histories</code></td><td>The repo on GitHub and your local repo started separately (for example both have a first commit).</td><td><code>git pull origin main --allow-unrelated-histories</code>, fix any conflict, then push. To avoid it, create the GitHub repo empty when you start from a local project.</td></tr>
+    <tr><td><code>CONFLICT (content): Merge conflict in …</code></td><td>Both sides changed the same lines.</td><td>See "Fix a merge conflict" in Advanced.</td></tr>
+    <tr><td><code>You are in 'detached HEAD' state</code></td><td>You checked out an old commit, not a branch.</td><td><code>git switch main</code>. Nothing is broken.</td></tr>
+    <tr><td><code>warning: LF will be replaced by CRLF</code></td><td>Windows and Linux end lines differently. Git is converting.</td><td>Harmless. Ignore it.</td></tr>
+    <tr><td><code>fatal: detected dubious ownership in repository</code></td><td>The folder belongs to a different Windows user (often a copied or external drive).</td><td>Run the command Git prints: <code>git config --global --add safe.directory PATH</code>.</td></tr>
+    <tr><td><code>this exceeds GitHub's file size limit of 100.00 MB</code></td><td>A file is too big. GitHub also warns above 50 MB.</td><td>If it is only in your last unpushed commit: <code>git reset --soft HEAD~1</code>, then <code>git restore --staged bigfile.csv</code>, add its name to <code>.gitignore</code> and commit again. Prefer reading big data from a URL.</td></tr>
+    <tr><td>My <code>venv</code> folder went to GitHub</td><td>It was added before it was ignored.</td><td><code>git rm -r --cached venv</code>, add <code>venv/</code> to <code>.gitignore</code>, commit, push. (<code>--cached</code> removes it from Git only and keeps the folder on your disk.)</td></tr>
+    <tr><td><code>.gitignore</code> does not work for a file</td><td>Git already tracks that file.</td><td><code>git rm --cached filename</code>, commit.</td></tr>
+  </table></div>
+</section>
+
+<!-- STREAMLIT -->
+<section id="streamlit">
+  <h2>9. Deploy a Streamlit app (Community Cloud)</h2>
+  <p class="sub">Your code goes to GitHub, then Streamlit builds it and gives you a public link such as <code>https://your-app-name.streamlit.app</code>. It is free.</p>
+
+  <div class="flow">
+    <div class="box"><b>Laptop</b><span>app.py, requirements.txt</span></div><div class="arr">→</div>
+    <div class="box"><b>GitHub repo</b><span><code>git push</code></span></div><div class="arr">→</div>
+    <div class="box"><b>share.streamlit.io</b><span>Create app, Deploy</span></div><div class="arr">→</div>
+    <div class="box"><b>Live link</b><span>Share with anyone</span></div>
+  </div>
+
+  <h3>Checklist before you deploy</h3>
+  <ul class="check">
+    <li>App runs on your laptop: <code>streamlit run app.py</code>.</li>
+    <li><code>requirements.txt</code> lists every package the app imports (not Python built-ins).</li>
+    <li>The data file is in the repo, and its name matches your code <b>exactly</b>, including capital letters. Streamlit runs on Linux where <code>Sales Data.csv</code> and <code>sales data.csv</code> are different files.</li>
+    <li>The code uses <b>relative paths</b> like <code>"Sales Data.csv"</code>. Not <code>C:\Users\...</code>. That path does not exist on the server.</li>
+    <li><code>venv/</code> and secrets are in <code>.gitignore</code>.</li>
+    <li>Everything is committed and pushed. Open the repo on GitHub and confirm the files are there.</li>
+  </ul>
+
+  <h3>Example repo layout</h3>
+  <pre>sales-dashboard/
+├── app.py
+├── requirements.txt
+├── Sales Data.csv        <span class="c">(about 22 MB, fine; shorter names without spaces are even safer)</span>
+├── .gitignore
+└── README.md</pre>
+  <div class="label">requirements.txt for our sales dashboard</div>
+  <div class="codewrap"><pre class="code">streamlit&gt;=1.30,&lt;1.50
+pandas
+plotly</pre></div>
+  <div class="note tip"><b class="l">Version pins</b><p>Writing <code>streamlit&gt;=1.30,&lt;1.50</code> means "any version from 1.30 up to but not including 1.50". It keeps your app from breaking when a new Streamlit changes behaviour. Put one package per line, no extra spaces.</p></div>
+  <div class="note care"><b class="l">Take care with big data</b><p>GitHub blocks files over 100 MB and warns above 50 MB. The sales file (22 MB) is fine. The COVID file (about 98 MB) is too close to the limit, so read it from its web link instead: <code>pd.read_csv("https://…/owid-covid-data.csv")</code>.</p></div>
+
+  <h3>Deploy step by step</h3>
+  <ol class="steps">
+    <li><b class="t">Open Streamlit Community Cloud</b>Go to <b>share.streamlit.io</b> and choose <b>Continue with GitHub</b>. Allow Streamlit to access your account when GitHub asks.</li>
+    <li><b class="t">Create app</b>Click <b>Create app</b> (top right) and choose <b>Deploy a public app from GitHub</b>. (If you picked the option to start from a template, go back and choose the GitHub one.)</li>
+    <li><b class="t">Fill the three boxes</b>
+      <div class="scroll" style="margin:8px 0"><table class="fit">
+        <tr><th>Box</th><th>What to enter</th></tr>
+        <tr><td>Repository</td><td><code>username/sales-dashboard</code>, or pick it from the list</td></tr>
+        <tr><td>Branch</td><td><code>main</code></td></tr>
+        <tr><td>Main file path</td><td><code>app.py</code>. If the file is inside a folder, write the folder too: <code>sales_dashboard/app.py</code>.</td></tr>
+        <tr><td>App URL (optional)</td><td>Choose a short name, for example <code>my-sales-dashboard</code>.</td></tr>
+      </table></div></li>
+    <li><b class="t">Advanced settings (only if needed)</b>Open <b>Advanced settings</b> to choose the <b>Python version</b> and to paste <b>Secrets</b> (see below). For our sales dashboard you can skip this.</li>
+    <li><b class="t">Click Deploy</b>A page shows the build log. The first run installs your packages from <code>requirements.txt</code>, which takes a few minutes. When it finishes, your app opens at its own link.</li>
+    <li><b class="t">Share</b>Copy the link into your assignment or your portfolio. Add it to your repo's <code>README.md</code> too.</li>
+  </ol>
+
+  <h3>Update the app later</h3>
+  <div class="codewrap"><pre class="code">git add .
+git commit -m "Add city filter"
+git push</pre></div>
+  <p>Streamlit watches the repo. After the push, the app updates by itself in a short time. If you changed <code>requirements.txt</code> it installs the packages again.</p>
+
+  <h3>Manage the app</h3>
+  <div class="scroll"><table class="fit">
+    <tr><th>Need</th><th>What to do</th></tr>
+    <tr><td>See logs and errors</td><td>Open the app, click <b>Manage app</b> (bottom right). Errors are printed there in red.</td></tr>
+    <tr><td>Restart</td><td>In your Streamlit workspace (share.streamlit.io), click the <b>⋮</b> menu next to the app, then <b>Reboot app</b>.</td></tr>
+    <tr><td>App is asleep</td><td>Apps with no visitors for about 12 hours go to sleep. Open the link and click <b>Yes, get this app back up!</b>. It wakes in a minute.</td></tr>
+    <tr><td>Delete the app</td><td>Same <b>⋮</b> menu → <b>Delete</b>. Your GitHub repo is not touched.</td></tr>
+    <tr><td>Change the link name</td><td>⋮ menu → <b>Settings</b>.</td></tr>
+  </table></div>
+
+  <h3>Secrets: passwords and API keys</h3>
+  <p>Never write a key inside <code>app.py</code>. Use Streamlit secrets.</p>
+  <div class="grid">
+    <div><div class="label">On your laptop: file .streamlit/secrets.toml</div>
+      <div class="codewrap"><pre class="code">API_KEY = "paste-your-key-here"</pre></div>
+      <p>Add <code>.streamlit/secrets.toml</code> to <code>.gitignore</code> so it never reaches GitHub.</p></div>
+    <div><div class="label">In app.py</div>
+      <div class="codewrap"><pre class="code">import streamlit as st
+key = st.secrets["API_KEY"]</pre></div>
+      <p>On the server: <b>Advanced settings → Secrets</b>, paste the same line. After deploy: ⋮ → Settings → Secrets.</p></div>
+  </div>
+
+  <h3>Troubleshooting</h3>
+  <div class="scroll"><table class="fit">
+    <tr><th>Problem in the log</th><th>Reason</th><th>Fix</th></tr>
+    <tr><td><code>ModuleNotFoundError: No module named 'plotly'</code></td><td>The package is not in <code>requirements.txt</code>.</td><td>Add it, commit, push.</td></tr>
+    <tr><td><code>FileNotFoundError: … Sales Data.csv</code></td><td>File not pushed, or different name or capital letters, or a Windows path.</td><td>Check the file is on GitHub with the exact name. Use a relative path.</td></tr>
+    <tr><td>"This file does not exist" for the Main file path</td><td>Wrong path or wrong branch.</td><td>Edit the app settings. Include folder names in the path.</td></tr>
+    <tr><td>Install fails with "No matching distribution"</td><td>A pinned version does not exist for the chosen Python version.</td><td>Loosen the pin, or choose another Python version in Advanced settings.</td></tr>
+    <tr><td>App is slow or restarts ("resource limits")</td><td>The free server has limited memory. Big data loaded again and again.</td><td>Use <code>@st.cache_data</code> on the loading function, drop unused columns, use a smaller file.</td></tr>
+    <tr><td>Works on laptop, fails on server</td><td>Different package versions, or a file only on your laptop.</td><td>Pin versions in <code>requirements.txt</code>. Run <code>pip freeze</code> to see what you have installed.</td></tr>
+    <tr><td>Linux cannot find a system tool</td><td>Some packages need a system library.</td><td>Add a file named <code>packages.txt</code> with the system package names, one per line. Not needed for our dashboards.</td></tr>
+  </table></div>
+</section>
+
+<!-- LAB -->
+<section id="lab">
+  <h2>10. Practice lab</h2>
+  <p class="sub">Do these in order. Every step uses something from this sheet.</p>
+  <ol class="steps">
+    <li><b class="t">Make a repo on the website</b>Name it <code>git-practice</code>. Public, with README and the Python .gitignore.</li>
+    <li><b class="t">Edit the README on the website</b>Add your name and a bullet list. Commit with a clear message.</li>
+    <li><b class="t">Clone it</b>With your chosen way (CMD, VS Code or GitHub Desktop).</li>
+    <li><b class="t">Pull the change you made online</b>Check that the new README text appears on your laptop. Use <code>git log --oneline</code>.</li>
+    <li><b class="t">Make a small change and push it</b>Add <code>hello.py</code> with one <code>print</code> line. Run <code>status</code> → <code>add</code> → <code>commit</code> → <code>push</code>. Refresh GitHub.</li>
+    <li><b class="t">Break it on purpose, then fix it</b>Edit the README online and on your laptop (same line, no pull). Push. Meet the rejected push. Pull. Fix the conflict. Push.</li>
+    <li><b class="t">Branch and pull request</b>Create a branch <code>add-notes</code>, add <code>notes.md</code>, push, open a pull request, merge it, delete the branch, pull on <code>main</code>.</li>
+    <li><b class="t">Deploy</b>Push the sales dashboard (with <code>requirements.txt</code>) to its own repo and deploy it on Streamlit Community Cloud.</li>
+  </ol>
+
+  <h3>Submit</h3>
+  <ul>
+    <li>Link to your GitHub repo.</li>
+    <li>Link to your live Streamlit app.</li>
+    <li>A short README with a title, one paragraph about the app, and the live link.</li>
+  </ul>
+
+  <h3>Before you click push: final check</h3>
+  <ul class="check">
+    <li><code>git status</code> shows only files I expect.</li>
+    <li>No <code>venv</code>, <code>.env</code>, keys or passwords in the list.</li>
+    <li>The commit message says what changed.</li>
+    <li>I pulled first if I also edited online or work with a partner.</li>
+  </ul>
+</section>
+
+<footer>Examples were run with Git 2.43 on a practice repo. Screens in GitHub, VS Code, GitHub Desktop and Streamlit Community Cloud change over time, so button names may differ a little.</footer>
+</main>
+</div>
+</div>
+
+<script>
+(function(){
+  /* Command data: [group, command, what it does, type, take care] */
+  var C=[
+   ["Setup","git --version","Shows which Git version is installed.","read","If it errors, Git is not installed or the terminal is old. Open a new one."],
+   ["Setup","git config --global user.name \"Your Name\"","Saves your name for all commits on this laptop.","write","Run once. Changes a settings file, not your project."],
+   ["Setup","git config --global user.email \"you@example.com\"","Saves your email for all commits.","write","Use the GitHub noreply address if you want your email private."],
+   ["Setup","git config --global init.defaultBranch main","New repos start on a branch called main.","write","Run once."],
+   ["Setup","git config --list","Prints all Git settings.","read","Press Q if the list pauses."],
+   ["Start","git init","Turns the current folder into a repo by creating a hidden .git folder.","write","Be sure you are in the project folder. Do not run it twice or inside another repo."],
+   ["Start","git clone URL","Downloads a repo from GitHub into a new folder, with full history.","write","Run it outside any repo. It creates a folder named after the repo. Needs the HTTPS link."],
+   ["Look","git status","Shows the branch, changed files, staged files and new files.","read","Run it all the time. Red means not staged, green means staged."],
+   ["Look","git status -s","Same, in a short form (?? new, M changed, A added).","read","Good for quick checks."],
+   ["Look","git diff","Shows exact line changes that are not staged yet.","read","Press Q to leave. Add --staged to see staged changes."],
+   ["Look","git diff --staged","Shows what will go into the next commit.","read","Check this before committing."],
+   ["Look","git log","Lists past commits with author, date and message.","read","Press Q to leave."],
+   ["Look","git log --oneline","One line per commit: short code and message.","read","Add --graph to see branches drawn."],
+   ["Look","git show","Shows one commit in full (default: the latest).","read","Use git show CODE for an older one."],
+   ["Look","git branch","Lists local branches. The star marks the current one.","read","With a name (git branch new) it creates a branch, so it then writes."],
+   ["Look","git remote -v","Shows the GitHub links this repo is connected to.","read","origin is the usual name."],
+   ["Look","git ls-files","Lists the files Git is tracking.","read","A file missing here is not tracked."],
+   ["Look","git reflog","Diary of where your branch pointers moved. Helps to find lost commits.","read","A rescue tool. Ask your teacher when using it."],
+   ["Look","git stash list","Shows stashed edits.","read","Empty means nothing stashed."],
+   ["Save","git add file.py","Puts one file in the staging area for the next commit.","write","Quote names with spaces. Does not touch GitHub."],
+   ["Save","git add .","Stages every change in the current folder and below.","write","Check git status first. It will also add junk, secrets and big files if they are not in .gitignore."],
+   ["Save","git commit -m \"message\"","Saves staged changes as a snapshot in local history.","write","Forget -m and an editor opens (vim). Press Esc, type :q! and Enter to leave. Only staged files are saved."],
+   ["Save","git commit -am \"message\"","Stages all changed tracked files and commits.","write","New files are not included. Skips your chance to review."],
+   ["Save","git mv old.py new.py","Renames or moves a file and records it.","write","Better than renaming by hand when you use the terminal."],
+   ["Save","git rm file.py","Deletes the file and records the deletion.","write","The file leaves your folder. Come back with git restore --source=HEAD file.py before you commit."],
+   ["Save","git rm -r --cached venv","Stops tracking a folder but keeps it on disk.","write","Use after a folder was pushed by mistake. Then add it to .gitignore."],
+   ["GitHub","git remote add origin URL","Connects this repo to a GitHub repo and names it origin.","write","Only once. Error 'already exists'? Use git remote set-url."],
+   ["GitHub","git push -u origin main","First push of main. -u remembers the link.","remote","After this, plain git push works."],
+   ["GitHub","git push","Sends your new commits to GitHub.","remote","Commit first. Rejected? Pull, then push."],
+   ["GitHub","git fetch","Downloads GitHub's new commits but does not change your files.","remote","Safe way to look before you merge."],
+   ["GitHub","git pull","Fetch plus merge: brings new commits into your branch and your files.","remote","Commit or stash your edits first. It can cause a conflict."],
+   ["Branch","git switch name","Moves to another branch. Your folder files change to match it.","write","Commit or stash first."],
+   ["Branch","git switch -c name","Creates a branch and moves to it.","write","Starts from where you are now."],
+   ["Branch","git merge name","Brings the named branch into the branch you are on.","write","Switch to the receiving branch first (usually main). May cause a conflict."],
+   ["Branch","git branch -d name","Deletes a branch that is already merged.","write","Git refuses if it is not merged, which protects you."],
+   ["Branch","git branch -D name","Force deletes a branch even if not merged.","danger","Unmerged commits become hard to find."],
+   ["Branch","git stash","Hides your edits so the folder is clean.","write","Bring them back with git stash pop."],
+   ["Branch","git stash pop","Brings the latest stash back and removes it from the drawer.","write","May conflict if files changed in between."],
+   ["Branch","git tag v1.0","Names the current commit as a version.","write","Send it with git push origin v1.0."],
+   ["Undo","git restore --staged file.py","Unstages a file. Your edits stay.","write","Safe."],
+   ["Undo","git restore file.py","Throws away your unsaved edits and restores the last committed version.","danger","No undo. Edits are gone."],
+   ["Undo","git reset --soft HEAD~1","Undoes the last commit but keeps the work staged.","write","Only for commits you have not pushed."],
+   ["Undo","git commit --amend -m \"new\"","Rewrites the last commit message or content.","write","Never after you pushed it. That rewrites shared history."],
+   ["Undo","git revert CODE","Makes a new commit that cancels an old one.","write","Safe even after pushing. History stays honest."],
+   ["Undo","git reset --hard","Resets files and staging to the last commit.","danger","All edits since the last commit are lost."],
+   ["Undo","git clean -n","Shows which untracked files clean would delete (dry run).","read","Always run this before the real one."],
+   ["Undo","git clean -fd","Deletes untracked files and folders.","danger","Gone for good, not in Recycle Bin."],
+   ["Undo","git push --force","Overwrites GitHub history with yours.","danger","Can wipe your teammates' commits. Prefer --force-with-lease."]
+  ];
+  var LAB={read:"read only",write:"writes",remote:"remote",danger:"danger"};
+  var tb=document.querySelector("#cmdtable tbody"),q=document.getElementById("q"),cnt=document.getElementById("count");
+  var filt="all";
+  function copy(text,btn){
+    var ok=function(){var o=btn.textContent;btn.textContent="Copied";setTimeout(function(){btn.textContent=o},1400)};
+    var fb=function(){
+      var t=document.createElement("textarea");t.value=text;t.style.cssText="position:fixed;opacity:0;top:0";document.body.appendChild(t);t.select();
+      try{document.execCommand("copy");ok()}catch(e){btn.textContent="Press Ctrl+C"}
+      document.body.removeChild(t)};
+    try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(ok,fb)}else{fb()}}catch(e){fb()}
+  }
+  function render(){
+    var s=q.value.trim().toLowerCase(),n=0;tb.textContent="";
+    C.forEach(function(r){
+      if(filt!=="all"&&r[3]!==filt)return;
+      if(s&&(r[0]+" "+r[1]+" "+r[2]+" "+r[4]).toLowerCase().indexOf(s)<0)return;
+      n++;var tr=document.createElement("tr");
+      var a=document.createElement("td");a.className="cmd";
+      var cd=document.createElement("div");cd.textContent=r[1];
+      var gn=document.createElement("span");gn.className="gname";gn.textContent=r[0];
+      var b=document.createElement("button");b.className="chip";b.style.cssText="font-size:.72rem;padding:1px 10px;margin-top:6px;font-family:var(--mono)";b.textContent="Copy";
+      b.addEventListener("click",function(){copy(r[1],b)});
+      a.appendChild(cd);a.appendChild(gn);a.appendChild(b);
+      var d=document.createElement("td");d.textContent=r[2];
+      var t=document.createElement("td");var sp=document.createElement("span");sp.className="tag "+r[3];sp.textContent=LAB[r[3]];t.appendChild(sp);
+      var c=document.createElement("td");c.textContent=r[4];
+      tr.appendChild(a);tr.appendChild(d);tr.appendChild(t);tr.appendChild(c);tb.appendChild(tr);
+    });
+    if(!n){var tr=document.createElement("tr"),td=document.createElement("td");td.colSpan=4;td.textContent="No command matches. Try another word.";tr.appendChild(td);tb.appendChild(tr)}
+    cnt.textContent=n+" of "+C.length+" commands";
+  }
+  q.addEventListener("input",render);
+  document.querySelectorAll(".chip[data-f]").forEach(function(b){b.addEventListener("click",function(){
+    filt=b.getAttribute("data-f");
+    document.querySelectorAll(".chip[data-f]").forEach(function(x){x.setAttribute("aria-pressed",x===b?"true":"false")});render()})});
+  render();
+
+  /* copy buttons on code blocks */
+  document.querySelectorAll("pre.code").forEach(function(pre){
+    var w=pre.parentElement;
+    if(!w.classList.contains("codewrap")){w=document.createElement("div");w.className="codewrap";pre.parentNode.insertBefore(w,pre);w.appendChild(pre)}
+    var b=document.createElement("button");b.className="copy";b.type="button";b.textContent="Copy";
+    b.addEventListener("click",function(){copy(pre.innerText.replace(/\s+$/,""),b)});
+    w.appendChild(b);
+  });
+
+  /* tabs */
+  var tabs=[].slice.call(document.querySelectorAll('[role=tab]'));
+  function pick(t,save){
+    tabs.forEach(function(x){var on=x===t;x.setAttribute("aria-selected",on?"true":"false");x.tabIndex=on?0:-1;
+      document.getElementById(x.getAttribute("aria-controls")).hidden=!on});
+    if(save){try{localStorage.setItem("gitsheet-tab",t.id)}catch(e){}}
+  }
+  tabs.forEach(function(t,i){
+    t.addEventListener("click",function(){pick(t,true)});
+    t.addEventListener("keydown",function(e){
+      var j=e.key==="ArrowRight"?i+1:e.key==="ArrowLeft"?i-1:-1;
+      if(j>=0){e.preventDefault();var n=tabs[(j+tabs.length)%tabs.length];n.focus();pick(n,true)}});
+  });
+  var saved=null;try{saved=localStorage.getItem("gitsheet-tab")}catch(e){}
+  var st=tabs.filter(function(t){return t.id===saved})[0]||tabs[0];pick(st,false);
+
+  /* highlight current chapter */
+  var links=[].slice.call(document.querySelectorAll("#toc a"));
+  var secs=links.map(function(a){return document.querySelector(a.getAttribute("href"))});
+  function spy(){
+    var y=window.scrollY+120,cur=0;
+    secs.forEach(function(s,i){if(s&&s.offsetTop<=y)cur=i});
+    links.forEach(function(a,i){a.classList.toggle("on",i===cur)});
+    var on=links[cur],nav=document.getElementById("toc");
+    if(on&&nav.scrollWidth>nav.clientWidth&&getComputedStyle(nav).flexDirection==="row"){nav.scrollLeft=on.offsetLeft-16}
+  }
+  window.addEventListener("scroll",spy,{passive:true});spy();
+})();
+</script>
+</body></html>
